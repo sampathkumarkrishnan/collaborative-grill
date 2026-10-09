@@ -32,20 +32,28 @@ export function CreateRoomForm({ onCreate }: CreateRoomFormProps): JSX.Element {
   }
 
   return (
-    <form onSubmit={handleSubmit} aria-label="Create Room">
-      <label htmlFor={inputId}>Topic</label>
-      <input
-        id={inputId}
-        aria-label="Topic"
-        value={topic}
-        onChange={(event) => setTopic(event.target.value)}
-        placeholder="What are we grilling?"
-        disabled={submitting}
-      />
-      <button type="submit" disabled={submitting}>
-        Create Room
-      </button>
-      {error && <p role="alert">{error}</p>}
+    <form onSubmit={handleSubmit} aria-label="Create Room" className="stack">
+      <div className="form-row">
+        <div className="field">
+          <label htmlFor={inputId}>Topic</label>
+          <input
+            id={inputId}
+            aria-label="Topic"
+            value={topic}
+            onChange={(event) => setTopic(event.target.value)}
+            placeholder="What are we grilling?"
+            disabled={submitting}
+          />
+        </div>
+        <button type="submit" className="btn btn--primary" disabled={submitting}>
+          Create Room
+        </button>
+      </div>
+      {error && (
+        <p role="alert" className="alert alert--error">
+          {error}
+        </p>
+      )}
     </form>
   );
 }

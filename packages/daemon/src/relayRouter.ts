@@ -34,6 +34,8 @@ export function createRelayRouter(
     const run = await agent.send(message.payload);
     const body = await run.text();
     publish(buildAgentPublicationMessage(message.roomId, hostCredential, body));
+    // eslint-disable-next-line no-console
+    console.log(`agent-publication sent for Room ${message.roomId} (reply length: ${body.length}).`);
   }
 
   return { routeRelayDelivery };

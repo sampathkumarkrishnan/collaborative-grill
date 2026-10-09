@@ -17,10 +17,15 @@ export function ShareLink({ link }: ShareLinkProps): JSX.Element {
   const inputId = useId();
 
   return (
-    <p>
+    <p className="share-link">
       <label htmlFor={inputId}>Share this Link to invite Members</label>
-      <br />
-      <input id={inputId} aria-label="Share this Link to invite Members" readOnly value={joinUrl} onFocus={(event) => event.target.select()} />
+      <input
+        id={inputId}
+        aria-label="Share this Link to invite Members"
+        readOnly
+        value={joinUrl}
+        onFocus={(event) => event.target.select()}
+      />
     </p>
   );
 }

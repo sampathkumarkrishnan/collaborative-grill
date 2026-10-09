@@ -131,74 +131,115 @@ export function RoomPage({
   }, [roomId]);
 
   if (state.status === "loading") {
-    return <p>Loading Room…</p>;
+    return (
+      <div className="app-shell app-shell--centered">
+        <p className="loading-text">Loading Room…</p>
+      </div>
+    );
   }
 
   if (state.status === "not-found") {
     return (
-      <main>
-        <p role="alert">This Link doesn&apos;t open a Room.</p>
-        <button onClick={onBack}>Back</button>
-      </main>
+      <div className="app-shell app-shell--centered">
+        <main className="panel join-card">
+          <p role="alert" className="alert alert--error">
+            This Link doesn&apos;t open a Room.
+          </p>
+          <button type="button" className="btn btn--ghost" onClick={onBack} style={{ marginTop: "1rem" }}>
+            Back to home
+          </button>
+        </main>
+      </div>
     );
   }
 
   if (state.status === "error") {
     return (
-      <main>
-        <p role="alert">{state.message}</p>
-        <button onClick={onBack}>Back</button>
-      </main>
+      <div className="app-shell app-shell--centered">
+        <main className="panel join-card">
+          <p role="alert" className="alert alert--error">
+            {state.message}
+          </p>
+          <button type="button" className="btn btn--ghost" onClick={onBack} style={{ marginTop: "1rem" }}>
+            Back to home
+          </button>
+        </main>
+      </div>
     );
   }
 
   if (state.status === "needs-name") {
     const room = state.room;
     return (
-      <main>
-        <button onClick={onBack}>Back</button>
-        <h1>{room.topic}</h1>
-        <DisplayNameForm
-          defaultValue={storage.getLastDisplayName()}
-          onSubmit={(displayName) => {
-            storage.rememberDisplayName(room.id, displayName);
-            const isHost = storage.isHostOfRoom(room.id);
-            if (!isHost) {
-              storage.rememberVisitedRoom({ id: room.id, topic: room.topic, link: room.link });
-            }
-            setState({
-              status: "ready",
-              room,
-              displayName,
-              isHost,
-              hostCredential: storage.getHostCredential(room.id)
-            });
-          }}
-        />
-      </main>
+      <div className="app-shell app-shell--centered">
+        <main className="panel join-card">
+          <button type="button" className="btn btn--ghost" onClick={onBack} style={{ marginBottom: "1rem" }}>
+            Back
+          </button>
+          <h1 className="join-card__topic">{room.topic}</h1>
+          <DisplayNameForm
+            defaultValue={storage.getLastDisplayName()}
+            onSubmit={(displayName) => {
+              storage.rememberDisplayName(room.id, displayName);
+              const isHost = storage.isHostOfRoom(room.id);
+              if (!isHost) {
+                storage.rememberVisitedRoom({ id: room.id, topic: room.topic, link: room.link });
+              }
+              setState({
+                status: "ready",
+                room,
+                displayName,
+                isHost,
+                hostCredential: storage.getHostCredential(room.id)
+              });
+            }}
+          />
+        </main>
+      </div>
     );
   }
 
   const { room, displayName, isHost, hostCredential } = state;
 
   return (
-    <main>
-      <button onClick={onBack}>Back</button>
-      <h1>{room.topic}</h1>
-      <ShareLink link={room.link} />
-      <PresenceBadge daemonConnected={daemonConnected} />
-      {liveError && <p role="alert">{liveError}</p>}
-      <TranscriptView transcript={transcript} />
-      <Composer
-        context={{ displayName, isHost, hostCredential }}
-        sendMessage={async (request: PostMessageRequest) => {
-          const response = await apiClient.postMessage(room.id, request);
-          if (response.ok) {
-            appendEntry(response.entry);
-          }
-          return response;
-        }}
-      />
-    </main>
+    <div className="room-layout">
+      <header className="room-header">
+        <div className="room-header__back">
+          <button type="button" className="btn btn--ghost" onClick={onBack}>
+            Back
+          </button>
+        </div>
+        <div className="room-header__main">
+          <h1 className="room-header__topic">{room.topic}</h1>
+          <div className="room-header__meta">
+            <PresenceBadge daemonConnected={daemonConnected} />
+            <ShareLink link={room.link} />
+          </div>
+        </div>
+      </header>
+
+      <div className="room-body">
+        {liveError && (
+          <p role="alert" className="alert alert--error" style={{ marginBottom: "0.75rem" }}>
+            {liveError}
+          </p>
+        )}
+        <div className="room-transcript-wrap">
+          <TranscriptView transcript={transcript} />
+        </div>
+        <div className="room-composer-wrap">
+          <Composer
+            context={{ displayName, isHost, hostCredential }}
+            sendMessage={async (request: PostMessageRequest) => {
+              const response = await apiClient.postMessage(room.id, request);
+              if (response.ok) {
+                appendEntry(response.entry);
+              }
+              return response;
+            }}
+          />
+        </div>
+      </div>
+    </div>
   );
 }

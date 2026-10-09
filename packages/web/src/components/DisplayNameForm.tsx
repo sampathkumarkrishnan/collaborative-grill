@@ -23,17 +23,25 @@ export function DisplayNameForm({ defaultValue, onSubmit }: DisplayNameFormProps
   }
 
   return (
-    <form onSubmit={handleSubmit} aria-label="Choose a display name">
-      <label htmlFor={inputId}>Display name</label>
-      <input
-        id={inputId}
-        aria-label="Display name"
-        value={displayName}
-        onChange={(event) => setDisplayName(event.target.value)}
-        placeholder="How should your Replies be labeled?"
-      />
-      <button type="submit">Join Room</button>
-      {error && <p role="alert">{error}</p>}
+    <form onSubmit={handleSubmit} aria-label="Choose a display name" className="stack">
+      <div className="field">
+        <label htmlFor={inputId}>Display name</label>
+        <input
+          id={inputId}
+          aria-label="Display name"
+          value={displayName}
+          onChange={(event) => setDisplayName(event.target.value)}
+          placeholder="How should your Replies be labeled?"
+        />
+      </div>
+      <button type="submit" className="btn btn--primary">
+        Join Room
+      </button>
+      {error && (
+        <p role="alert" className="alert alert--error">
+          {error}
+        </p>
+      )}
     </form>
   );
 }

@@ -1,15 +1,31 @@
 .transcript-view {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
-  max-width: 42rem;
+  gap: 1rem;
+}
+
+.transcript-view__empty {
+  margin: 2rem 0;
+  text-align: center;
+  color: var(--color-text-muted, #57534e);
+  font-size: 0.9375rem;
 }
 
 .transcript-entry {
-  border: 1px solid #e2e8f0;
-  border-radius: 0.5rem;
-  padding: 0.75rem 1rem;
-  background: #fff;
+  border: 1px solid var(--color-border, #e2ddd4);
+  border-radius: 0.625rem;
+  padding: 0.875rem 1rem;
+  background: var(--color-surface, #fff);
+  box-shadow: 0 1px 2px rgb(28 25 23 / 0.04);
+}
+
+.transcript-entry--agent {
+  border-color: rgb(3 105 161 / 0.25);
+  background: linear-gradient(180deg, #f0f9ff 0%, #fff 100%);
+}
+
+.transcript-entry--relay {
+  border-left: 3px solid #c2410c;
 }
 
 .transcript-entry__header {

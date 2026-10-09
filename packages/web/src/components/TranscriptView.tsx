@@ -11,7 +11,7 @@ export interface TranscriptViewProps {
  */
 export function TranscriptView({ transcript }: TranscriptViewProps): JSX.Element {
   if (transcript.length === 0) {
-    return <p>No messages yet.</p>;
+    return <p className="transcript-view__empty">No messages yet. Say hello or wait for the Host to Relay.</p>;
   }
 
   return (

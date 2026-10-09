@@ -72,24 +72,40 @@ export interface CursorSdkAdapterOptions {
  * once a Room's first Relay actually needs the real Agent.
  */
 export function createCursorSdkAdapter(options: CursorSdkAdapterOptions): AgentSdkAdapter {
-  async function createAgent(_roomId: string): Promise<AgentHandle> {
+  async function createAgent(roomId: string): Promise<AgentHandle> {
     const { Agent } = await import("@cursor/sdk");
     const agent = await Agent.create({
       apiKey: options.apiKey,
       model: { id: options.model ?? "composer-2.5" },
       local: { cwd: options.cwd }
     });
+    // eslint-disable-next-line no-console
+    console.log(`Cursor Agent ${agent.agentId} created for Room ${roomId}.`);
 
     return {
       async send(payload: string): Promise<AgentRun> {
         const run = await agent.send(payload);
+        // Per the Cursor SDK's production guidance: log the run id right
+        // after `send()`, before awaiting the result - if the run hangs,
+        // this id is what you look up in the dashboard or `Agent.getRun`.
+        // eslint-disable-next-line no-console
+        console.log(`Cursor run ${run.id} started for Room ${roomId}.`);
         return {
           async text(): Promise<string> {
             const result = await run.wait();
             if (result.status === "error") {
+              // eslint-disable-next-line no-console
+              console.error(
+                `Cursor run ${run.id} for Room ${roomId} failed: ${result.error?.message ?? "(no message)"}`
+              );
               throw new Error(result.error?.message ?? `Agent run ${result.id} failed`);
             }
-            return result.result ?? "";
+            const text = result.result ?? "";
+            // eslint-disable-next-line no-console
+            console.log(
+              `Cursor run ${run.id} for Room ${roomId} finished (status: ${result.status}, reply length: ${text.length}).`
+            );
+            return text;
           }
         };
       },

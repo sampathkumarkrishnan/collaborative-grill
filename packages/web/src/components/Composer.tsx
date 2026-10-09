@@ -55,20 +55,34 @@ export function Composer({ context, sendMessage }: ComposerProps): JSX.Element {
   }
 
   return (
-    <form onSubmit={handleSubmit} aria-label="Composer">
-      <label htmlFor={inputId}>Message</label>
-      <textarea
-        id={inputId}
-        aria-label="Message"
-        value={body}
-        onChange={(event) => setBody(event.target.value)}
-        placeholder={context.isHost ? "Reply, or @agent to Relay..." : "Reply..."}
-        disabled={sending}
-      />
-      <button type="submit" disabled={sending}>
-        Send
-      </button>
-      {error && <p role="alert">{error}</p>}
+    <form onSubmit={handleSubmit} aria-label="Composer" className="composer-panel stack">
+      {context.isHost && (
+        <p className="composer-panel__hint">
+          Plain text posts a Reply. Include <code>@agent</code> to Relay (e.g.{" "}
+          <code>@agent /grill-with-docs</code>).
+        </p>
+      )}
+      <div className="field">
+        <label htmlFor={inputId}>Message</label>
+        <textarea
+          id={inputId}
+          aria-label="Message"
+          value={body}
+          onChange={(event) => setBody(event.target.value)}
+          placeholder={context.isHost ? "Reply, or @agent to Relay..." : "Reply..."}
+          disabled={sending}
+        />
+      </div>
+      <div className="form-row">
+        <button type="submit" className="btn btn--primary" disabled={sending}>
+          Send
+        </button>
+      </div>
+      {error && (
+        <p role="alert" className="alert alert--error">
+          {error}
+        </p>
+      )}
     </form>
   );
 }

@@ -27,15 +27,24 @@ function parseRoomIds(value: string | undefined): string[] {
     .filter((id) => id.length > 0);
 }
 
-/** Real Cursor SDK when `CURSOR_API_KEY` and a `cwd` are both available; fake otherwise. */
+/**
+ * Real Cursor SDK when `CURSOR_API_KEY` and a `cwd` are both available;
+ * fake otherwise. Logs which one it picked - the fake adapter's replies
+ * are also self-marked (`[fake-agent reply N for room <roomId>] ...`),
+ * but that only shows up after a Relay runs; this logs at startup.
+ */
 function buildSdkAdapter(): AgentSdkAdapter {
   const apiKey = process.env.CURSOR_API_KEY;
   const cwd = process.env.CURSOR_AGENT_CWD ?? process.cwd();
 
   if (apiKey) {
+    // eslint-disable-next-line no-console
+    console.log(`Daemon using the real Cursor SDK (CURSOR_API_KEY set; cwd: ${cwd}).`);
     return createCursorSdkAdapter({ apiKey, cwd, model: process.env.CURSOR_AGENT_MODEL });
   }
 
+  // eslint-disable-next-line no-console
+  console.log("Daemon using the fake SDK adapter (CURSOR_API_KEY not set).");
   return createFakeSdkAdapter();
 }
 
