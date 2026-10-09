@@ -20,6 +20,7 @@
     "ws": "^8.18.0"
   },
   "devDependencies": {
+    "@collaborative-grill/daemon": "workspace:*",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/node": "^20.16.11",
