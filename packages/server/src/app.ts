@@ -6,7 +6,7 @@ import {
   type PostMessageRequest,
   type RelayRejectionReason
 } from "@collaborative-grill/shared";
-import type { MockRoomStore } from "./store.js";
+import type { RoomStore } from "./store.js";
 
 const REJECTION_STATUS: Record<RelayRejectionReason, number> = {
   "room-not-found": 404,
@@ -20,10 +20,10 @@ function statusForRejection(reason: RelayRejectionReason): number {
 }
 
 /**
- * Builds the stub Server's HTTP app for a given store. Kept separate from
+ * Builds the Server HTTP app for a given Room store. Kept separate from
  * `index.ts` so tests can exercise routes without binding a port.
  */
-export function createApp(store: MockRoomStore): Express {
+export function createApp(store: RoomStore): Express {
   const app = express();
   app.use(cors());
   app.use(express.json());
