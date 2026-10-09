@@ -18,6 +18,7 @@ web app and Daemon have something real to talk to before the Room module
 ```
 packages/
   shared/   @collaborative-grill/shared  - Transcript kinds, wire protocol types, validators
+  room/     @collaborative-grill/room    - Room module (product rules and test seam)
   server/   @collaborative-grill/server  - stub HTTP + WebSocket Server (mock Room store)
   web/      @collaborative-grill/web     - React web app shell
   daemon/   @collaborative-grill/daemon  - Daemon process shell

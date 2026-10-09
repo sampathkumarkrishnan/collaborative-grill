@@ -43,6 +43,22 @@ importers:
         specifier: ^2.1.2
         version: 2.1.9(@types/node@20.19.43)
 
+  packages/room:
+    dependencies:
+      '@collaborative-grill/shared':
+        specifier: workspace:*
+        version: link:../shared
+    devDependencies:
+      '@types/node':
+        specifier: ^20.16.11
+        version: 20.19.43
+      typescript:
+        specifier: ^5.6.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.2
+        version: 2.1.9(@types/node@20.19.43)
+
   packages/server:
     dependencies:
       '@collaborative-grill/shared':
