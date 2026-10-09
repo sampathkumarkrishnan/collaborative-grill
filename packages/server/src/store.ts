@@ -16,7 +16,7 @@ import {
  * built against real wire shapes before the Room module lands.
  */
 
-interface RoomRecord {
+export interface RoomRecord {
   id: string;
   topic: string;
   linkToken: string;
@@ -30,6 +30,8 @@ export interface MockRoomStore {
   createRoom(topic: string): { room: RoomSummary; hostCredential: HostCredential };
   getRoomByLink(linkToken: string): RoomRecord | undefined;
   getRoomById(roomId: string): RoomRecord | undefined;
+  /** The public `RoomSummary` shape for a Room record, shared by every HTTP route. */
+  toSummary(room: RoomRecord): RoomSummary;
   setDaemonConnected(roomId: string, hostCredential: HostCredential, connected: boolean): boolean;
   postMessage(roomId: string, request: PostMessageRequest): PostMessageResponse;
   publishAgentEntry(roomId: string, hostCredential: HostCredential, body: string): boolean;
@@ -91,7 +93,7 @@ export function createMockRoomStore(): MockRoomStore {
   function postMessage(roomId: string, request: PostMessageRequest): PostMessageResponse {
     const room = roomsById.get(roomId);
     if (!room) {
-      return { ok: false, error: "not-host" };
+      return { ok: false, error: "room-not-found" };
     }
 
     if (request.kind === "reply") {
@@ -158,6 +160,7 @@ export function createMockRoomStore(): MockRoomStore {
     createRoom,
     getRoomByLink,
     getRoomById,
+    toSummary,
     setDaemonConnected,
     postMessage,
     publishAgentEntry

@@ -3,9 +3,21 @@ import express, { type Express } from "express";
 import {
   validateCreateRoomRequest,
   validateDisplayName,
-  type PostMessageRequest
+  type PostMessageRequest,
+  type RelayRejectionReason
 } from "@collaborative-grill/shared";
 import type { MockRoomStore } from "./store.js";
+
+const REJECTION_STATUS: Record<RelayRejectionReason, number> = {
+  "room-not-found": 404,
+  "not-host": 403,
+  "daemon-disconnected": 409,
+  "missing-agent-marker": 400
+};
+
+function statusForRejection(reason: RelayRejectionReason): number {
+  return REJECTION_STATUS[reason];
+}
 
 /**
  * Builds the stub Server's HTTP app for a given store. Kept separate from
@@ -35,13 +47,7 @@ export function createApp(store: MockRoomStore): Express {
     }
 
     res.status(200).json({
-      room: {
-        id: room.id,
-        topic: room.topic,
-        link: `/r/${room.linkToken}`,
-        daemonConnected: room.daemonConnected,
-        createdAt: room.createdAt
-      },
+      room: store.toSummary(room),
       transcript: room.transcript
     });
   });
@@ -92,14 +98,7 @@ export function createApp(store: MockRoomStore): Express {
         body: body.body
       };
       const result = store.postMessage(req.params.roomId, request);
-      const status = result.ok
-        ? 201
-        : result.error === "not-host"
-          ? 403
-          : result.error === "daemon-disconnected"
-            ? 409
-            : 400;
-      res.status(status).json(result);
+      res.status(result.ok ? 201 : statusForRejection(result.error)).json(result);
       return;
     }
 

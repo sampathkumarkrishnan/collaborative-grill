@@ -47,8 +47,9 @@ export interface PostRelayRequest {
 
 export type PostMessageRequest = PostReplyRequest | PostRelayRequest;
 
-/** Why a Relay attempt was rejected and not stored. */
+/** Why a message attempt was rejected and not stored. */
 export type RelayRejectionReason =
+  | "room-not-found"
   | "not-host"
   | "daemon-disconnected"
   | "missing-agent-marker";

@@ -64,10 +64,12 @@ All request/response bodies are typed in `packages/shared/src/protocol.ts`.
 | GET    | `/api/rooms/:roomId/transcript`    | -                      | `200 GetTranscriptResponse`                           |
 | POST   | `/api/rooms/:roomId/messages`      | `PostMessageRequest`  | see below                                             |
 
-`POST /api/rooms/:roomId/messages` takes a discriminated `PostMessageRequest`:
+`POST /api/rooms/:roomId/messages` takes a discriminated `PostMessageRequest`.
+An unknown `roomId` returns `404 { ok: false, error: "room-not-found" }`
+for either kind.
 
-- `{ kind: "reply", displayName, body }` - always appended. Returns
-  `201 { ok: true, entry }`.
+- `{ kind: "reply", displayName, body }` - always appended once the Room
+  exists. Returns `201 { ok: true, entry }`.
 - `{ kind: "relay", hostCredential, body }` - appended only when all of
   these hold, in order:
   1. `hostCredential` matches the Room's Host credential, else

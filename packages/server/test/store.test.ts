@@ -50,6 +50,16 @@ describe("createMockRoomStore", () => {
     expect(store.getRoomByLink(room.link.split("/").pop()!)?.transcript).toHaveLength(1);
   });
 
+  it("reports an unknown Room distinctly from a wrong Host credential", () => {
+    const result = store.postMessage("no-such-room", {
+      kind: "reply",
+      displayName: "Ada",
+      body: "hello"
+    });
+
+    expect(result).toEqual({ ok: false, error: "room-not-found" });
+  });
+
   it("rejects a Relay attempt without the Host credential and does not store it", () => {
     const { room } = store.createRoom("Topic A");
 

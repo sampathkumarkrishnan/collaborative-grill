@@ -23,8 +23,12 @@ export interface RoomSummary {
   createdAt: string;
 }
 
-/** A Member's browser-local identity within one Room. Label only. */
-export interface MemberSession {
+/**
+ * A Member's browser-local identity within one Room. Label only; not an
+ * authorization. Named to avoid `CONTEXT.md`'s "Session" (Room/Agent
+ * avoid-list).
+ */
+export interface MemberIdentity {
   roomId: string;
   displayName: string;
 }
