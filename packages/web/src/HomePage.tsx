@@ -3,29 +3,28 @@ import type { ApiClient } from "./api.js";
 import { CreateRoomForm } from "./components/CreateRoomForm.js";
 import { RoomList } from "./components/RoomList.js";
 import {
-  getCreatedRooms,
-  getVisitedRooms,
-  rememberCreatedRoom,
-  rememberHostCredential,
+  defaultBrowserStorage,
+  type BrowserStorage,
   type StoredRoomRef
 } from "./storage.js";
 
 export interface HomePageProps {
   apiClient: ApiClient;
   onNavigate: (link: string) => void;
+  storage?: BrowserStorage;
 }
 
 /** Created-room and visited-room lists, plus "Create Room with Topic" (ticket 3 scope). */
-export function HomePage({ apiClient, onNavigate }: HomePageProps): JSX.Element {
-  const [createdRooms, setCreatedRooms] = useState<StoredRoomRef[]>(() => getCreatedRooms());
-  const [visitedRooms] = useState<StoredRoomRef[]>(() => getVisitedRooms());
+export function HomePage({ apiClient, onNavigate, storage = defaultBrowserStorage }: HomePageProps): JSX.Element {
+  const [createdRooms, setCreatedRooms] = useState<StoredRoomRef[]>(() => storage.getCreatedRooms());
+  const [visitedRooms] = useState<StoredRoomRef[]>(() => storage.getVisitedRooms());
 
   async function handleCreate(topic: string): Promise<void> {
     const { room, hostCredential } = await apiClient.createRoom(topic);
     const ref: StoredRoomRef = { id: room.id, topic: room.topic, link: room.link };
-    rememberCreatedRoom(ref);
-    rememberHostCredential(room.id, hostCredential);
-    setCreatedRooms(getCreatedRooms());
+    storage.rememberCreatedRoom(ref);
+    storage.rememberHostCredential(room.id, hostCredential);
+    setCreatedRooms(storage.getCreatedRooms());
     onNavigate(room.link);
   }
 

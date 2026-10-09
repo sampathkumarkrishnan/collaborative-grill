@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import type { PostMessageRequest, PostMessageResponse } from "@collaborative-grill/shared";
 import { decideMessageRequest, type ComposerContext } from "../composer.js";
 
@@ -24,6 +24,7 @@ export function Composer({ context, sendMessage }: ComposerProps): JSX.Element {
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
+  const inputId = useId();
 
   async function handleSubmit(event: React.FormEvent): Promise<void> {
     event.preventDefault();
@@ -55,9 +56,10 @@ export function Composer({ context, sendMessage }: ComposerProps): JSX.Element {
 
   return (
     <form onSubmit={handleSubmit} aria-label="Composer">
-      <label htmlFor="composer-input">Message</label>
+      <label htmlFor={inputId}>Message</label>
       <textarea
-        id="composer-input"
+        id={inputId}
+        aria-label="Message"
         value={body}
         onChange={(event) => setBody(event.target.value)}
         placeholder={context.isHost ? "Reply, or @agent to Relay..." : "Reply..."}

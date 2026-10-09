@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 
 export interface CreateRoomFormProps {
   onCreate: (topic: string) => Promise<void>;
@@ -9,6 +9,7 @@ export function CreateRoomForm({ onCreate }: CreateRoomFormProps): JSX.Element {
   const [topic, setTopic] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const inputId = useId();
 
   async function handleSubmit(event: React.FormEvent): Promise<void> {
     event.preventDefault();
@@ -32,9 +33,10 @@ export function CreateRoomForm({ onCreate }: CreateRoomFormProps): JSX.Element {
 
   return (
     <form onSubmit={handleSubmit} aria-label="Create Room">
-      <label htmlFor="topic-input">Topic</label>
+      <label htmlFor={inputId}>Topic</label>
       <input
-        id="topic-input"
+        id={inputId}
+        aria-label="Topic"
         value={topic}
         onChange={(event) => setTopic(event.target.value)}
         placeholder="What are we grilling?"
