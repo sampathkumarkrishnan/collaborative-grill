@@ -1,9 +1,10 @@
 import type { RoomSummary } from "@collaborative-grill/shared";
+import { fixtureTranscript } from "./transcript/fixtures.js";
+import { TranscriptView } from "./transcript/TranscriptView.js";
 
 /**
- * Placeholder shell confirming the web app resolves `@collaborative-grill/shared`
- * types. Ticket "3: Web app module" builds out Room lists, join-by-link,
- * the composer, the Transcript view, and the WebSocket client.
+ * Placeholder shell with a fixture Transcript preview. Ticket "3: Web app module"
+ * wires live Server data; this ticket (#7) owns markdown and Mermaid rendering.
  */
 export function App(): JSX.Element {
   const placeholderRoom: Pick<RoomSummary, "topic" | "daemonConnected"> = {
@@ -16,6 +17,8 @@ export function App(): JSX.Element {
       <h1>Collaborative Grill</h1>
       <p>{placeholderRoom.topic}</p>
       <p>Daemon connected: {String(placeholderRoom.daemonConnected)}</p>
+      <h2>Transcript preview</h2>
+      <TranscriptView entries={fixtureTranscript} />
     </main>
   );
 }

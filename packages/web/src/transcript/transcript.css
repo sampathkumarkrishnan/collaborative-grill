@@ -1,0 +1,66 @@
+.transcript-view {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-width: 42rem;
+}
+
+.transcript-entry {
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: #fff;
+}
+
+.transcript-entry__header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.transcript-entry__author {
+  font-weight: 600;
+}
+
+.transcript-entry__role {
+  color: #64748b;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.transcript-entry__role--host {
+  color: #b45309;
+}
+
+.transcript-entry__role--agent {
+  color: #0369a1;
+}
+
+.transcript-markdown :is(p, pre, ul, ol) {
+  margin: 0.5rem 0;
+}
+
+.transcript-markdown :first-child {
+  margin-top: 0;
+}
+
+.transcript-markdown :last-child {
+  margin-bottom: 0;
+}
+
+.transcript-mermaid {
+  overflow-x: auto;
+  margin: 0.75rem 0;
+}
+
+.transcript-mermaid-loading {
+  min-height: 2rem;
+}
+
+.transcript-mermaid-error {
+  color: #b91c1c;
+  font-size: 0.875rem;
+}
