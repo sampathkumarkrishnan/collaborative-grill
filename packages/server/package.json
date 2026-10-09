@@ -2,7 +2,7 @@
   "name": "@collaborative-grill/server",
   "version": "0.1.0",
   "private": true,
-  "description": "Stub Server conforming to the shared protocol, for local web/Daemon development",
+  "description": "Server: HTTP, WebSocket hub, Host credential checks, and SQLite persistence",
   "type": "module",
   "main": "./dist/index.js",
   "scripts": {

@@ -1,4 +1,19 @@
 import { randomUUID } from "node:crypto";
+import { mkdirSync } from "node:fs";
+import { createRequire } from "node:module";
+import { dirname } from "node:path";
+
+const { DatabaseSync } = createRequire(import.meta.url)("node:sqlite") as {
+  DatabaseSync: new (path: string) => {
+    exec(sql: string): void;
+    prepare(sql: string): {
+      run(...params: unknown[]): { changes: number; lastInsertRowid: number | bigint };
+      get(...params: unknown[]): unknown;
+      all(...params: unknown[]): unknown[];
+    };
+    close(): void;
+  };
+};
 import {
   parseRelayCandidate,
   type HostCredential,
@@ -9,13 +24,10 @@ import {
 } from "@collaborative-grill/shared";
 
 /**
- * This store is a mock for local development only. It is intentionally
- * naive (no persistence, no multi-process fan-out, minimal rejection
- * rules) and must not be mistaken for the Room module's authority, which
- * ships in a later ticket. It exists so the web app and Daemon can be
- * built against real wire shapes before the Room module lands.
+ * Room module API used by HTTP and WebSocket. This is a stub of the Room
+ * module (ticket 1) so the Server can persist and serve against the shared
+ * contract now, then swap in the real Room module without changing the wire.
  */
-
 export interface RoomRecord {
   id: string;
   topic: string;
@@ -26,7 +38,10 @@ export interface RoomRecord {
   transcript: TranscriptEntry[];
 }
 
-export interface MockRoomStore {
+export type TranscriptListener = (roomId: string, entry: TranscriptEntry) => void;
+export type PresenceListener = (roomId: string, daemonConnected: boolean) => void;
+
+export interface RoomStore {
   createRoom(topic: string): { room: RoomSummary; hostCredential: HostCredential };
   getRoomByLink(linkToken: string): RoomRecord | undefined;
   getRoomById(roomId: string): RoomRecord | undefined;
@@ -35,7 +50,50 @@ export interface MockRoomStore {
   setDaemonConnected(roomId: string, hostCredential: HostCredential, connected: boolean): boolean;
   postMessage(roomId: string, request: PostMessageRequest): PostMessageResponse;
   publishAgentEntry(roomId: string, hostCredential: HostCredential, body: string): boolean;
+  addTranscriptListener(listener: TranscriptListener): void;
+  addPresenceListener(listener: PresenceListener): void;
+  close(): void;
 }
+
+interface RoomRow {
+  id: string;
+  topic: string;
+  link_token: string;
+  host_credential: string;
+  created_at: string;
+}
+
+interface TranscriptEntryRow {
+  id: string;
+  room_id: string;
+  kind: string;
+  body: string;
+  author_display_name: string | null;
+  payload: string | null;
+  created_at: string;
+}
+
+const SCHEMA = `
+  CREATE TABLE IF NOT EXISTS rooms (
+    id TEXT PRIMARY KEY,
+    topic TEXT NOT NULL,
+    link_token TEXT NOT NULL UNIQUE,
+    host_credential TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  ) STRICT;
+
+  CREATE TABLE IF NOT EXISTS transcript_entries (
+    seq INTEGER PRIMARY KEY AUTOINCREMENT,
+    id TEXT NOT NULL UNIQUE,
+    room_id TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    body TEXT NOT NULL,
+    author_display_name TEXT,
+    payload TEXT,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (room_id) REFERENCES rooms(id)
+  ) STRICT;
+`;
 
 function toSummary(room: RoomRecord): RoomSummary {
   return {
@@ -47,17 +105,134 @@ function toSummary(room: RoomRecord): RoomSummary {
   };
 }
 
-export function createMockRoomStore(): MockRoomStore {
-  const roomsById = new Map<string, RoomRecord>();
-  const roomIdByLinkToken = new Map<string, string>();
+function toTranscriptEntry(row: TranscriptEntryRow): TranscriptEntry | undefined {
+  if (row.kind === "reply") {
+    return {
+      kind: "reply",
+      id: row.id,
+      roomId: row.room_id,
+      body: row.body,
+      authorDisplayName: row.author_display_name ?? "",
+      createdAt: row.created_at
+    };
+  }
+
+  if (row.kind === "relay") {
+    return {
+      kind: "relay",
+      id: row.id,
+      roomId: row.room_id,
+      body: row.body,
+      authorDisplayName: row.author_display_name ?? "Host",
+      payload: row.payload ?? "",
+      createdAt: row.created_at
+    };
+  }
+
+  if (row.kind === "agent") {
+    return {
+      kind: "agent",
+      id: row.id,
+      roomId: row.room_id,
+      body: row.body,
+      createdAt: row.created_at
+    };
+  }
+
+  return undefined;
+}
+
+function ensureParentDir(dbPath: string): void {
+  if (dbPath === ":memory:") {
+    return;
+  }
+  mkdirSync(dirname(dbPath), { recursive: true });
+}
+
+/**
+ * SQLite persistence adapter plus Room stub. Daemon presence is connection
+ * state and is not persisted: a Server restart has no live Daemon sockets.
+ */
+export function createRoomStore(dbPath = ":memory:"): RoomStore {
+  ensureParentDir(dbPath);
+  const db = new DatabaseSync(dbPath);
+  db.exec("PRAGMA foreign_keys = ON");
+  db.exec(SCHEMA);
+
+  const daemonConnectedByRoomId = new Map<string, boolean>();
+  const transcriptListeners: TranscriptListener[] = [];
+  const presenceListeners: PresenceListener[] = [];
+
+  function notifyTranscript(roomId: string, entry: TranscriptEntry): void {
+    for (const listener of transcriptListeners) {
+      listener(roomId, entry);
+    }
+  }
+
+  function notifyPresence(roomId: string, daemonConnected: boolean): void {
+    for (const listener of presenceListeners) {
+      listener(roomId, daemonConnected);
+    }
+  }
+
+  const insertRoom = db.prepare(
+    `INSERT INTO rooms (id, topic, link_token, host_credential, created_at)
+     VALUES (?, ?, ?, ?, ?)`
+  );
+  const selectRoomById = db.prepare(`SELECT * FROM rooms WHERE id = ?`);
+  const selectRoomByLink = db.prepare(`SELECT * FROM rooms WHERE link_token = ?`);
+  const selectEntries = db.prepare(
+    `SELECT id, room_id, kind, body, author_display_name, payload, created_at
+     FROM transcript_entries WHERE room_id = ? ORDER BY seq`
+  );
+  const insertEntry = db.prepare(
+    `INSERT INTO transcript_entries
+     (id, room_id, kind, body, author_display_name, payload, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`
+  );
+
+  function loadTranscript(roomId: string): TranscriptEntry[] {
+    return (selectEntries.all(roomId) as TranscriptEntryRow[])
+      .map(toTranscriptEntry)
+      .filter((entry): entry is TranscriptEntry => entry !== undefined);
+  }
+
+  function toRoomRecord(row: RoomRow): RoomRecord {
+    return {
+      id: row.id,
+      topic: row.topic,
+      linkToken: row.link_token,
+      hostCredential: row.host_credential,
+      daemonConnected: daemonConnectedByRoomId.get(row.id) ?? false,
+      createdAt: row.created_at,
+      transcript: loadTranscript(row.id)
+    };
+  }
 
   function getRoomById(roomId: string): RoomRecord | undefined {
-    return roomsById.get(roomId);
+    const row = selectRoomById.get(roomId) as RoomRow | undefined;
+    return row ? toRoomRecord(row) : undefined;
   }
 
   function getRoomByLink(linkToken: string): RoomRecord | undefined {
-    const roomId = roomIdByLinkToken.get(linkToken);
-    return roomId ? roomsById.get(roomId) : undefined;
+    const row = selectRoomByLink.get(linkToken) as RoomRow | undefined;
+    return row ? toRoomRecord(row) : undefined;
+  }
+
+  function appendEntry(entry: TranscriptEntry): void {
+    const authorDisplayName =
+      entry.kind === "reply" || entry.kind === "relay" ? entry.authorDisplayName : null;
+    const payload = entry.kind === "relay" ? entry.payload : null;
+    insertEntry.run(
+      entry.id,
+      entry.roomId,
+      entry.kind,
+      entry.body,
+      authorDisplayName,
+      payload,
+      entry.createdAt
+    );
+    notifyTranscript(entry.roomId, entry);
   }
 
   function createRoom(topic: string): { room: RoomSummary; hostCredential: HostCredential } {
@@ -71,9 +246,7 @@ export function createMockRoomStore(): MockRoomStore {
       transcript: []
     };
 
-    roomsById.set(room.id, room);
-    roomIdByLinkToken.set(room.linkToken, room.id);
-
+    insertRoom.run(room.id, room.topic, room.linkToken, room.hostCredential, room.createdAt);
     return { room: toSummary(room), hostCredential: room.hostCredential };
   }
 
@@ -82,16 +255,17 @@ export function createMockRoomStore(): MockRoomStore {
     hostCredential: HostCredential,
     connected: boolean
   ): boolean {
-    const room = roomsById.get(roomId);
+    const room = getRoomById(roomId);
     if (!room || room.hostCredential !== hostCredential) {
       return false;
     }
-    room.daemonConnected = connected;
+    daemonConnectedByRoomId.set(roomId, connected);
+    notifyPresence(roomId, connected);
     return true;
   }
 
   function postMessage(roomId: string, request: PostMessageRequest): PostMessageResponse {
-    const room = roomsById.get(roomId);
+    const room = getRoomById(roomId);
     if (!room) {
       return { ok: false, error: "room-not-found" };
     }
@@ -105,7 +279,7 @@ export function createMockRoomStore(): MockRoomStore {
         authorDisplayName: request.displayName,
         createdAt: new Date().toISOString()
       };
-      room.transcript.push(entry);
+      appendEntry(entry);
       return { ok: true, entry };
     }
 
@@ -131,7 +305,7 @@ export function createMockRoomStore(): MockRoomStore {
       payload: candidate.payload,
       createdAt: new Date().toISOString()
     };
-    room.transcript.push(entry);
+    appendEntry(entry);
     return { ok: true, entry };
   }
 
@@ -140,7 +314,7 @@ export function createMockRoomStore(): MockRoomStore {
     hostCredential: HostCredential,
     body: string
   ): boolean {
-    const room = roomsById.get(roomId);
+    const room = getRoomById(roomId);
     if (!room || room.hostCredential !== hostCredential) {
       return false;
     }
@@ -152,8 +326,20 @@ export function createMockRoomStore(): MockRoomStore {
       body,
       createdAt: new Date().toISOString()
     };
-    room.transcript.push(entry);
+    appendEntry(entry);
     return true;
+  }
+
+  function addTranscriptListener(listener: TranscriptListener): void {
+    transcriptListeners.push(listener);
+  }
+
+  function addPresenceListener(listener: PresenceListener): void {
+    presenceListeners.push(listener);
+  }
+
+  function close(): void {
+    db.close();
   }
 
   return {
@@ -163,6 +349,9 @@ export function createMockRoomStore(): MockRoomStore {
     toSummary,
     setDaemonConnected,
     postMessage,
-    publishAgentEntry
+    publishAgentEntry,
+    addTranscriptListener,
+    addPresenceListener,
+    close
   };
 }
