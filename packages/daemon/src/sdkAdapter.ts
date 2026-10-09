@@ -7,8 +7,9 @@
  *
  * `createFakeSdkAdapter` is the default: a deterministic in-memory
  * stand-in used in CI and local dev without Cursor installed.
- * `createCursorSdkAdapter` wraps the real `@cursor/sdk`; `index.ts` only
- * builds it when `CURSOR_API_KEY` and a `cwd` are both set.
+ * `createCursorSdkAdapter` wraps the real `@cursor/sdk`; `cli.ts` (the
+ * Daemon process entry) only builds it when `CURSOR_API_KEY` and a `cwd`
+ * are both set.
  */
 
 /** One completed Agent run. Only the buffered final text is ever read -

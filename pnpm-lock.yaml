@@ -80,6 +80,9 @@ importers:
         specifier: ^8.18.0
         version: 8.22.0
     devDependencies:
+      '@collaborative-grill/daemon':
+        specifier: workspace:*
+        version: link:../daemon
       '@types/cors':
         specifier: ^2.8.17
         version: 2.8.19
