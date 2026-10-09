@@ -1,0 +1,472 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1350 780" width="100%" height="100%">
+  <defs>
+    <!-- Styles & Keyframes -->
+    <style>
+      @keyframes pulseScreen {
+        0%, 100% { fill: #0063a6; }
+        50% { fill: #008be3; }
+      }
+      @keyframes ledBlink {
+        0%, 100% { opacity: 0.3; }
+        50% { opacity: 1; }
+      }
+      @keyframes dashMove {
+        to { stroke-dashoffset: -32; }
+      }
+      .streaming-path {
+        stroke-dasharray: 6 6;
+        animation: dashMove 1.2s linear infinite;
+      }
+      .laptop-screen-anim {
+        animation: pulseScreen 3s ease-in-out infinite;
+      }
+      .led-1 { animation: ledBlink 1.4s ease-in-out infinite; }
+      .led-2 { animation: ledBlink 0.9s ease-in-out infinite 0.3s; }
+      .led-3 { animation: ledBlink 2.1s ease-in-out infinite 0.6s; }
+      text {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      }
+    </style>
+
+    <!-- Gradients -->
+    <linearGradient id="serverFaceGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#e9f3fa"/>
+      <stop offset="100%" stop-color="#d6e8f5"/>
+    </linearGradient>
+
+    <linearGradient id="serverSideGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0063a6"/>
+      <stop offset="100%" stop-color="#004370"/>
+    </linearGradient>
+
+    <linearGradient id="serverTopGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#007bc9"/>
+      <stop offset="100%" stop-color="#0063a6"/>
+    </linearGradient>
+
+    <linearGradient id="daemonBoxGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#edf5fc"/>
+      <stop offset="100%" stop-color="#dcecf8"/>
+    </linearGradient>
+
+    <!-- Drop Shadows -->
+    <filter id="lightDropShadow" x="-5%" y="-5%" width="112%" height="114%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000000" flood-opacity="0.12"/>
+    </filter>
+
+    <filter id="cardShadow" x="-5%" y="-5%" width="110%" height="112%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.08"/>
+    </filter>
+
+    <filter id="glowPacket" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <!-- Arrow Markers -->
+    <marker id="arrowBlue" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M 0 0 L 9 4.5 L 0 9 Z" fill="#0063a6" />
+    </marker>
+    <marker id="arrowDark" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M 0 0 L 9 4.5 L 0 9 Z" fill="#252a2e" />
+    </marker>
+    <marker id="arrowOrange" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M 0 0 L 9 4.5 L 0 9 Z" fill="#e87722" />
+    </marker>
+    <marker id="arrowGreen" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M 0 0 L 9 4.5 L 0 9 Z" fill="#00875a" />
+    </marker>
+
+    <!-- Isometric Light Grid Pattern -->
+    <pattern id="lightIsoGrid" width="60" height="34.64" patternUnits="userSpaceOnUse">
+      <polygon points="30,0 60,17.32 30,34.64 0,17.32" fill="#ffffff" stroke="#cdd7e1" stroke-width="1.2"/>
+    </pattern>
+
+    <!-- Reusable Flow Packets -->
+    <g id="packetBlue">
+      <circle cx="0" cy="0" r="7" fill="#0063a6" opacity="0.3" filter="url(#glowPacket)" />
+      <circle cx="0" cy="0" r="4" fill="#ffffff" stroke="#0063a6" stroke-width="2" />
+    </g>
+    <g id="packetDark">
+      <circle cx="0" cy="0" r="7" fill="#252a2e" opacity="0.3" filter="url(#glowPacket)" />
+      <circle cx="0" cy="0" r="4" fill="#ffffff" stroke="#252a2e" stroke-width="2" />
+    </g>
+    <g id="packetOrange">
+      <circle cx="0" cy="0" r="7" fill="#ff8c00" opacity="0.35" filter="url(#glowPacket)" />
+      <circle cx="0" cy="0" r="4" fill="#ffffff" stroke="#ff8c00" stroke-width="2" />
+    </g>
+  </defs>
+
+  <!-- Clean Canvas Background -->
+  <rect width="100%" height="100%" fill="#f4f6f8"/>
+
+  <!-- ========================================== -->
+  <!-- TOP HEADER & BRANDING                      -->
+  <!-- ========================================== -->
+  <g id="header-branding" transform="translate(40, 24)">
+    <g transform="translate(0, 4)">
+      <circle cx="20" cy="22" r="17" stroke="#0063a6" stroke-width="2.5" fill="none"/>
+      <path d="M7 16 C 14 11, 26 11, 33 16" stroke="#0063a6" stroke-width="2.2" fill="none"/>
+      <path d="M4 22 C 12 17, 28 17, 36 22" stroke="#0063a6" stroke-width="2.2" fill="none"/>
+      <path d="M7 28 C 14 33, 26 33, 33 28" stroke="#0063a6" stroke-width="2.2" fill="none"/>
+      <line x1="20" y1="5" x2="20" y2="39" stroke="#0063a6" stroke-width="2.2"/>
+      <polygon points="12,14 26,18 20,32" fill="#0063a6" opacity="0.85"/>
+      <polygon points="17,10 28,24 14,24" fill="#008be3" opacity="0.9"/>
+      <text x="46" y="29" fill="#0063a6" font-weight="800" font-size="24" letter-spacing="-0.5">Trimble</text>
+    </g>
+
+    <line x1="165" y1="2" x2="165" y2="44" stroke="#c5cad0" stroke-width="1.8"/>
+    <text x="185" y="22" fill="#252a2e" font-size="20" font-weight="800" letter-spacing="0.2">“COLLABORATIVE ROOM WITH CURSOR AGENT”</text>
+    <text x="185" y="40" fill="#595f69" font-size="13" font-weight="600">(POC Architecture Diagram)</text>
+  </g>
+
+  <!-- Isometric Floor Tiles -->
+  <g id="iso-floors">
+    <polygon points="30,340 280,195 440,290 190,435" fill="url(#lightIsoGrid)" stroke="#b5c4d4" stroke-width="1.5" />
+    <polygon points="30,730 280,585 440,680 190,825" fill="url(#lightIsoGrid)" stroke="#b5c4d4" stroke-width="1.5" />
+    <polygon points="880,720 1130,575 1330,690 1080,835" fill="url(#lightIsoGrid)" stroke="#b5c4d4" stroke-width="1.5" />
+  </g>
+
+  <!-- Section Column Headers -->
+  <g id="column-titles" transform="translate(0, 95)">
+    <text x="180" y="0" font-size="15" font-weight="800" fill="#252a2e" letter-spacing="0.5" text-anchor="middle">WEB APP (BROWSER CLIENT)</text>
+    <text x="670" y="0" font-size="15" font-weight="800" fill="#252a2e" letter-spacing="0.5" text-anchor="middle">SERVER MODULE &amp; ROOM MODULE</text>
+    <text x="1100" y="0" font-size="15" font-weight="800" fill="#252a2e" letter-spacing="0.5" text-anchor="middle">HOST MACHINE &amp; DAEMON</text>
+  </g>
+
+  <!-- ========================================== -->
+  <!-- COLUMN 1: WEB APPS (LIGHT THEME)           -->
+  <!-- ========================================== -->
+
+  <!-- HOST BROWSER -->
+  <g id="host-browser-card">
+    <g transform="translate(60, 116)">
+      <rect x="0" y="0" width="22" height="16" rx="2" fill="#ffffff" stroke="#0063a6" stroke-width="1.8"/>
+      <line x1="0" y1="5" x2="22" y2="5" stroke="#0063a6" stroke-width="1.5"/>
+      <text x="30" y="13" font-size="14" font-weight="700" fill="#252a2e">Host Browser</text>
+    </g>
+
+    <!-- Shell Window -->
+    <rect x="50" y="142" width="270" height="235" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#cardShadow)"/>
+    <rect x="50" y="142" width="270" height="20" rx="8" fill="#f1f5f9"/>
+    <circle cx="62" cy="152" r="3.5" fill="#f87171"/>
+    <circle cx="72" cy="152" r="3.5" fill="#fbbf24"/>
+    <circle cx="82" cy="152" r="3.5" fill="#34d399"/>
+
+    <!-- Left Sidebar -->
+    <rect x="51" y="162" width="75" height="214" fill="#f8fafc"/>
+    <line x1="126" y1="162" x2="126" y2="376" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="60" y="180" font-size="9" font-weight="700" fill="#475569">Room List</text>
+    <rect x="58" y="186" width="62" height="16" rx="3" fill="#e0f2fe" stroke="#0063a6" stroke-width="1"/>
+    <text x="63" y="198" font-size="8" font-weight="700" fill="#0063a6">#hackathon</text>
+    <rect x="58" y="208" width="50" height="4" rx="2" fill="#cbd5e1"/>
+    <rect x="58" y="218" width="40" height="4" rx="2" fill="#e2e8f0"/>
+
+    <!-- Main Content -->
+    <text x="138" y="180" font-size="9" font-weight="700" fill="#1e293b">Transcript View</text>
+    <text x="138" y="192" font-size="8" fill="#64748b">Replies &amp; Relays</text>
+
+    <!-- Host Bubble 1 -->
+    <g transform="translate(136, 202)">
+      <rect x="0" y="0" width="168" height="36" rx="5" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+      <circle cx="12" cy="12" r="5" fill="#1e293b"/>
+      <text x="24" y="15" font-size="8" font-weight="700" fill="#1e293b">@agent</text>
+      <rect x="58" y="7" width="22" height="11" rx="5.5" fill="#ff8c00"/>
+      <circle cx="73" cy="12.5" r="4" fill="#ffffff"/>
+      <text x="24" y="27" font-size="7.5" fill="#64748b">/agent at...</text>
+    </g>
+
+    <!-- Host Bubble 2 -->
+    <g transform="translate(136, 244)">
+      <rect x="0" y="0" width="168" height="30" rx="5" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+      <circle cx="12" cy="15" r="5" fill="#1e293b"/>
+      <text x="24" y="18" font-size="8" font-weight="700" fill="#1e293b">@agent</text>
+      <rect x="58" y="10" width="22" height="11" rx="5.5" fill="#ff8c00"/>
+      <circle cx="73" cy="15.5" r="4" fill="#ffffff"/>
+    </g>
+
+    <text x="60" y="336" font-size="10.5" font-weight="700" fill="#0063a6">@agent</text>
+    <text x="60" y="350" font-size="10.5" font-weight="700" fill="#0063a6">/grill</text>
+
+    <!-- Composer -->
+    <g transform="translate(136, 324)">
+      <rect x="0" y="0" width="170" height="24" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+      <text x="8" y="16" font-size="9" fill="#94a3b8">Composer</text>
+      <rect x="146" y="3" width="18" height="18" rx="3" fill="#ff8c00"/>
+      <path d="M 152 7 L 158 12 L 152 17" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+    </g>
+  </g>
+
+  <!-- MEMBER BROWSER -->
+  <g id="member-browser-card">
+    <g transform="translate(125, 484)">
+      <rect x="0" y="0" width="22" height="16" rx="2" fill="#ffffff" stroke="#252a2e" stroke-width="1.8"/>
+      <circle cx="11" cy="6" r="2.8" fill="#252a2e"/>
+      <path d="M 6 14 A 5 5 0 0 1 16 14" stroke="#252a2e" stroke-width="1.5" fill="none"/>
+      <text x="30" y="13" font-size="14" font-weight="700" fill="#252a2e">Member Browser</text>
+    </g>
+
+    <rect x="115" y="508" width="250" height="200" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#cardShadow)"/>
+    <rect x="115" y="508" width="250" height="20" rx="8" fill="#f1f5f9"/>
+    <circle cx="126" cy="518" r="3.5" fill="#f87171"/>
+    <circle cx="136" cy="518" r="3.5" fill="#fbbf24"/>
+    <circle cx="146" cy="518" r="3.5" fill="#34d399"/>
+
+    <rect x="116" y="528" width="65" height="179" fill="#f8fafc"/>
+    <line x1="181" y1="528" x2="181" y2="707" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="124" y="544" font-size="8.5" font-weight="700" fill="#475569">Room List</text>
+    <rect x="122" y="550" width="54" height="14" rx="2" fill="#e0f2fe" stroke="#0063a6" stroke-width="0.8"/>
+    <text x="126" y="560" font-size="7.5" font-weight="700" fill="#0063a6">#hackathon</text>
+
+    <text x="194" y="544" font-size="8.5" font-weight="700" fill="#1e293b">Transcript View</text>
+    <text x="194" y="554" font-size="7.5" fill="#64748b">Replies &amp; Relays</text>
+
+    <g transform="translate(192, 564)">
+      <rect x="0" y="0" width="158" height="34" rx="4" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+      <circle cx="10" cy="12" r="5" fill="#1e293b"/>
+      <text x="20" y="15" font-size="8" font-weight="700" fill="#1e293b">@agent</text>
+      <text x="20" y="27" font-size="7.5" fill="#0063a6" font-weight="700">/grill</text>
+    </g>
+
+    <g transform="translate(192, 658)">
+      <rect x="0" y="0" width="160" height="22" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+      <text x="8" y="15" font-size="8.5" fill="#94a3b8">Composer</text>
+      <rect x="138" y="3" width="16" height="16" rx="3" fill="#ff8c00"/>
+      <path d="M 143 6 L 148 11 L 143 16" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round"/>
+    </g>
+  </g>
+
+  <!-- ========================================== -->
+  <!-- COLUMN 2: SERVER MODULE (3D MONOLITH)      -->
+  <!-- ========================================== -->
+  <g id="server-monolith">
+    <polygon points="790,143 825,123 825,668 790,698" fill="url(#serverSideGrad)" stroke="#003960" stroke-width="1.5"/>
+    <polygon points="490,143 530,123 825,123 790,143" fill="url(#serverTopGrad)" stroke="#003960" stroke-width="1.5"/>
+
+    <rect x="490" y="143" width="300" height="555" rx="6" fill="url(#serverFaceGrad)" stroke="#0063a6" stroke-width="2.5" filter="url(#lightDropShadow)"/>
+
+    <g transform="translate(506, 158)">
+      <g transform="translate(12, 10)">
+        <rect x="0" y="0" width="24" height="6" rx="1.5" fill="#0063a6"/>
+        <circle cx="4" cy="3" r="1.2" fill="#ffffff" class="led-1"/>
+        <rect x="0" y="8" width="24" height="6" rx="1.5" fill="#0063a6"/>
+        <circle cx="4" cy="11" r="1.2" fill="#ffffff" class="led-2"/>
+        <rect x="0" y="16" width="24" height="6" rx="1.5" fill="#0063a6"/>
+        <circle cx="4" cy="19" r="1.2" fill="#ffffff" class="led-3"/>
+      </g>
+      <text x="46" y="20" font-size="14" font-weight="800" fill="#003960" letter-spacing="0.5">SERVER MODULE</text>
+      <text x="46" y="34" font-size="10" font-weight="600" fill="#475569">Room Logic, Auth &amp; WS Hub</text>
+    </g>
+
+    <!-- Submodule 1: HTTP API & WebSocket Hub -->
+    <g transform="translate(514, 216)">
+      <rect x="0" y="0" width="252" height="44" rx="5" fill="#ffffff" stroke="#0063a6" stroke-width="1.5" filter="url(#cardShadow)"/>
+      <circle cx="24" cy="22" r="9" fill="#e0f2fe" stroke="#0063a6" stroke-width="1.2"/>
+      <path d="M 19 22 A 5 5 0 1 1 29 22" fill="none" stroke="#0063a6" stroke-width="1.6"/>
+      <text x="44" y="26" font-size="12" font-weight="700" fill="#1e293b">HTTP API &amp; WebSocket Hub</text>
+    </g>
+    <path d="M 640 260 L 640 278" stroke="#0063a6" stroke-width="2" marker-end="url(#arrowBlue)"/>
+
+    <!-- Submodule 2: Host Auth Check -->
+    <g transform="translate(514, 280)">
+      <rect x="0" y="0" width="252" height="40" rx="5" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2" filter="url(#cardShadow)"/>
+      <text x="126" y="25" font-size="12" font-weight="700" fill="#252a2e" text-anchor="middle">Host Auth Check</text>
+    </g>
+    <path d="M 640 320 L 640 338" stroke="#0063a6" stroke-width="2" marker-end="url(#arrowBlue)"/>
+
+    <!-- Submodule 3: Room Module -->
+    <g transform="translate(514, 340)">
+      <rect x="0" y="0" width="252" height="54" rx="5" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5" filter="url(#cardShadow)"/>
+      <text x="126" y="24" font-size="12" font-weight="800" fill="#252a2e" text-anchor="middle">Room Module</text>
+      <text x="126" y="40" font-size="9" fill="#595f69" text-anchor="middle">(Post Reply / Validate / Deliver)</text>
+    </g>
+    <path d="M 640 394 L 640 412" stroke="#0063a6" stroke-width="2" marker-end="url(#arrowBlue)"/>
+
+    <!-- Submodule 4: WebSocket Broadcast -->
+    <g transform="translate(514, 414)">
+      <rect x="0" y="0" width="252" height="40" rx="5" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2" filter="url(#cardShadow)"/>
+      <text x="126" y="25" font-size="12" font-weight="700" fill="#252a2e" text-anchor="middle">WebSocket Broadcast</text>
+    </g>
+
+    <!-- Submodule 5: Durable Store (SQLite Cylinder) -->
+    <g transform="translate(540, 513)">
+      <g transform="translate(20, 5)">
+        <path d="M 0 15 L 0 45 A 25 10 0 0 0 50 45 L 50 15 Z" fill="#0063a6" stroke="#004370" stroke-width="1.2"/>
+        <ellipse cx="25" cy="45" rx="25" ry="10" fill="#004370"/>
+        <path d="M 0 24 A 25 10 0 0 0 50 24 L 50 31 A 25 10 0 0 1 0 31 Z" fill="#d9381e"/>
+        <ellipse cx="25" cy="15" rx="25" ry="10" fill="#ef4444" stroke="#b91c1c" stroke-width="1.2"/>
+      </g>
+      <text x="85" y="28" font-size="12" font-weight="800" fill="#252a2e">Durable Store</text>
+      <text x="85" y="44" font-size="11" font-weight="600" fill="#595f69">(SQLite)</text>
+    </g>
+  </g>
+
+  <!-- ========================================== -->
+  <!-- COLUMN 3: HOST MACHINE & DAEMON            -->
+  <!-- ========================================== -->
+  <g id="host-machine">
+    <g transform="translate(970, 173)">
+      <polygon points="50,110 130,80 180,110 100,140" fill="#cbd5e1" stroke="#94a3b8" stroke-width="1.5"/>
+      <polygon points="68,105 125,83 148,97 90,120" fill="#94a3b8"/>
+      <polygon points="90,122 115,113 125,120 100,129" fill="#64748b"/>
+      <polygon points="130,80 180,110 180,35 130,5" fill="#475569" stroke="#334155" stroke-width="1.5"/>
+      <polygon points="134,75 176,102 176,40 134,13" class="laptop-screen-anim" stroke="#008be3" stroke-width="1.2"/>
+      <text x="140" y="55" font-size="7" fill="#ffffff" transform="rotate(18, 140, 55)">Cursor IDE</text>
+
+      <g transform="translate(195, 45)">
+        <rect x="0" y="0" width="36" height="60" rx="3" fill="#252a2e" stroke="#0f172a" stroke-width="1.5"/>
+        <rect x="4" y="8" width="28" height="6" rx="1" fill="#0f172a"/>
+        <circle cx="28" cy="11" r="1.2" fill="#00875a" class="led-1"/>
+        <rect x="4" y="18" width="28" height="6" rx="1" fill="#0f172a"/>
+        <circle cx="28" cy="21" r="1.2" fill="#00875a" class="led-2"/>
+        <rect x="4" y="28" width="28" height="6" rx="1" fill="#0f172a"/>
+        <circle cx="28" cy="31" r="1.2" fill="#ff8c00" class="led-3"/>
+        <rect x="4" y="38" width="28" height="6" rx="1" fill="#0f172a"/>
+        <circle cx="28" cy="41" r="1.2" fill="#008be3"/>
+      </g>
+    </g>
+    <text x="1055" y="333" font-size="13" font-weight="800" fill="#252a2e" text-anchor="middle">HOST MACHINE</text>
+  </g>
+
+  <!-- DAEMON PROCESS -->
+  <g id="daemon-process" transform="translate(940, 353)">
+    <rect x="0" y="0" width="230" height="270" rx="8" fill="url(#daemonBoxGrad)" stroke="#252a2e" stroke-width="2" filter="url(#lightDropShadow)"/>
+    <text x="115" y="26" font-size="13.5" font-weight="800" fill="#252a2e" text-anchor="middle" letter-spacing="0.5">DAEMON PROCESS</text>
+
+    <!-- Sub 1 -->
+    <g transform="translate(18, 38)">
+      <rect x="0" y="0" width="194" height="40" rx="5" fill="#ffffff" stroke="#252a2e" stroke-width="1.2" filter="url(#cardShadow)"/>
+      <text x="97" y="25" font-size="11" font-weight="700" fill="#252a2e" text-anchor="middle">WebSocket Client</text>
+    </g>
+    <path d="M 115 78 L 115 94" stroke="#252a2e" stroke-width="1.5" marker-end="url(#arrowDark)"/>
+
+    <!-- Sub 2 -->
+    <g transform="translate(18, 96)">
+      <rect x="0" y="0" width="194" height="40" rx="5" fill="#ffffff" stroke="#252a2e" stroke-width="1.2" filter="url(#cardShadow)"/>
+      <text x="97" y="25" font-size="11" font-weight="700" fill="#252a2e" text-anchor="middle">Relay Router by Room ID</text>
+    </g>
+    <path d="M 115 136 L 115 152" stroke="#252a2e" stroke-width="1.5" marker-end="url(#arrowDark)"/>
+
+    <!-- Sub 3 -->
+    <g transform="translate(18, 154)">
+      <rect x="0" y="0" width="194" height="40" rx="5" fill="#ffffff" stroke="#252a2e" stroke-width="1.2" filter="url(#cardShadow)"/>
+      <text x="97" y="25" font-size="11" font-weight="700" fill="#252a2e" text-anchor="middle">Agent Pool</text>
+    </g>
+    <path d="M 115 194 L 115 210" stroke="#252a2e" stroke-width="1.5" marker-end="url(#arrowDark)"/>
+
+    <!-- Sub 4 -->
+    <g transform="translate(18, 212)">
+      <rect x="0" y="0" width="194" height="42" rx="5" fill="#ffffff" stroke="#0063a6" stroke-width="1.5" filter="url(#cardShadow)"/>
+      <text x="97" y="22" font-size="11" font-weight="800" fill="#0063a6" text-anchor="middle">Cursor SDK</text>
+      <text x="97" y="34" font-size="9" font-weight="600" fill="#595f69" text-anchor="middle">local runtime</text>
+    </g>
+  </g>
+
+  <!-- ========================================== -->
+  <!-- STATIC AND ANIMATED DATA FLOW PATHS        -->
+  <!-- ========================================== -->
+
+  <!-- 1. HTTP: Create & Join -->
+  <path id="flow-http" d="M 320 228 L 514 228" fill="none" stroke="#0063a6" stroke-width="3" stroke-linecap="round" marker-end="url(#arrowBlue)"/>
+  <g transform="translate(415, 204)">
+    <text x="0" y="0" font-size="10.5" font-weight="800" fill="#0063a6" text-anchor="middle">HTTP:</text>
+    <text x="0" y="12" font-size="9" font-weight="700" fill="#252a2e" text-anchor="middle">Create &amp; Join</text>
+  </g>
+
+  <!-- 2. WS: Transcript & Presence -->
+  <path id="flow-ws-host" d="M 514 293 L 320 293" fill="none" stroke="#252a2e" stroke-width="2.5" marker-end="url(#arrowDark)"/>
+  <g transform="translate(415, 278)">
+    <text x="0" y="0" font-size="10" font-weight="800" fill="#252a2e" text-anchor="middle">WS: Transcript</text>
+    <text x="0" y="11" font-size="9" font-weight="600" fill="#475569" text-anchor="middle">&amp; Presence</text>
+  </g>
+
+  <!-- 3. Post Reply / Relay -->
+  <path id="flow-reply" d="M 365 573 C 440 573, 440 368, 514 368" fill="none" stroke="#252a2e" stroke-width="3" stroke-linecap="round" marker-end="url(#arrowDark)"/>
+  <g transform="translate(425, 508)">
+    <text x="0" y="0" font-size="10" font-weight="800" fill="#252a2e" text-anchor="middle">Post Reply</text>
+    <text x="0" y="11" font-size="9" font-weight="600" fill="#475569" text-anchor="middle">/ Relay</text>
+  </g>
+
+  <!-- 4. Relay Delivery -->
+  <path id="flow-relay" d="M 766 368 L 958 368" fill="none" stroke="#252a2e" stroke-width="3" stroke-linecap="round" marker-end="url(#arrowDark)"/>
+  <g transform="translate(860, 353)">
+    <text x="0" y="0" font-size="10" font-weight="800" fill="#252a2e" text-anchor="middle">Relay</text>
+    <text x="0" y="11" font-size="9" font-weight="600" fill="#475569" text-anchor="middle">Delivery</text>
+  </g>
+
+  <!-- 5. agent.send() & stream -->
+  <path id="flow-sdk-out" d="M 1152 586 C 1220 586, 1220 268, 1150 268" fill="none" stroke="#0063a6" stroke-width="3" stroke-linecap="round" marker-end="url(#arrowBlue)"/>
+  <path id="flow-sdk-in" d="M 1145 285 C 1195 285, 1195 570, 1140 570" fill="none" stroke="#008be3" stroke-width="2.2" class="streaming-path" marker-end="url(#arrowBlue)"/>
+  <g transform="translate(1225, 423)">
+    <text x="0" y="0" font-size="10" font-weight="800" fill="#0063a6" text-anchor="middle">agent.send()</text>
+    <text x="0" y="11" font-size="9" font-weight="700" fill="#0063a6" text-anchor="middle">&amp; stream</text>
+  </g>
+
+  <!-- 6. Agent Publication -->
+  <path id="flow-pub" d="M 1020 623 C 1020 728, 720 728, 720 588" fill="none" stroke="#0063a6" stroke-width="3.5" stroke-linecap="round" marker-end="url(#arrowBlue)"/>
+  <g transform="translate(870, 718)">
+    <text x="0" y="0" font-size="10" font-weight="800" fill="#0063a6" text-anchor="middle">Agent Publication</text>
+  </g>
+
+  <!-- 7. WS Broadcast -->
+  <path id="flow-broadcast" d="M 640 454 C 640 693, 420 693, 365 693" fill="none" stroke="#252a2e" stroke-width="3" stroke-linecap="round" marker-end="url(#arrowDark)"/>
+  <g transform="translate(490, 683)">
+    <text x="0" y="0" font-size="10" font-weight="800" fill="#252a2e" text-anchor="middle">WS Broadcast</text>
+  </g>
+
+  <!-- ========================================== -->
+  <!-- ANIMATED SVG PARTICLES                     -->
+  <!-- ========================================== -->
+  <g>
+    <use href="#packetBlue">
+      <animateMotion dur="2.4s" repeatCount="indefinite">
+        <mpath href="#flow-http"/>
+      </animateMotion>
+    </use>
+  </g>
+  <g>
+    <use href="#packetDark">
+      <animateMotion dur="2.8s" repeatCount="indefinite">
+        <mpath href="#flow-ws-host"/>
+      </animateMotion>
+    </use>
+  </g>
+  <g>
+    <use href="#packetDark">
+      <animateMotion dur="2.6s" repeatCount="indefinite">
+        <mpath href="#flow-reply"/>
+      </animateMotion>
+    </use>
+  </g>
+  <g>
+    <use href="#packetOrange">
+      <animateMotion dur="2.0s" repeatCount="indefinite">
+        <mpath href="#flow-relay"/>
+      </animateMotion>
+    </use>
+  </g>
+  <g>
+    <use href="#packetBlue">
+      <animateMotion dur="2.6s" repeatCount="indefinite">
+        <mpath href="#flow-sdk-out"/>
+      </animateMotion>
+    </use>
+  </g>
+  <g>
+    <use href="#packetBlue">
+      <animateMotion dur="3.2s" repeatCount="indefinite">
+        <mpath href="#flow-pub"/>
+      </animateMotion>
+    </use>
+  </g>
+  <g>
+    <use href="#packetDark">
+      <animateMotion dur="2.8s" repeatCount="indefinite">
+        <mpath href="#flow-broadcast"/>
+      </animateMotion>
+    </use>
+  </g>
+</svg>

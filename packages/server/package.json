@@ -2,7 +2,7 @@
   "name": "@collaborative-grill/server",
   "version": "0.1.0",
   "private": true,
-  "description": "Server: HTTP, WebSocket hub, Host credential checks, and SQLite persistence",
+  "description": "Server: HTTP, WebSocket hub, and SQLite persistence over the Room module",
   "type": "module",
   "main": "./dist/index.js",
   "scripts": {
@@ -13,6 +13,7 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
+    "@collaborative-grill/room": "workspace:*",
     "@collaborative-grill/shared": "workspace:*",
     "cors": "^2.8.5",
     "express": "^4.21.1",
