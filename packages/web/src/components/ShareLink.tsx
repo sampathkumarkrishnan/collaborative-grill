@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { buildJoinUrl } from "../links.js";
 
 export interface ShareLinkProps {
@@ -13,12 +14,13 @@ export interface ShareLinkProps {
 export function ShareLink({ link }: ShareLinkProps): JSX.Element {
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const joinUrl = buildJoinUrl(origin, link);
+  const inputId = useId();
 
   return (
     <p>
-      <label htmlFor="share-link-input">Share this Link to invite Members</label>
+      <label htmlFor={inputId}>Share this Link to invite Members</label>
       <br />
-      <input id="share-link-input" readOnly value={joinUrl} onFocus={(event) => event.target.select()} />
+      <input id={inputId} aria-label="Share this Link to invite Members" readOnly value={joinUrl} onFocus={(event) => event.target.select()} />
     </p>
   );
 }

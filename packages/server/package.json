@@ -5,6 +5,13 @@
   "description": "Server: HTTP, WebSocket hub, and SQLite persistence over the Room module",
   "type": "module",
   "main": "./dist/index.js",
+  "exports": {
+    ".": "./src/index.ts",
+    "./app": "./src/app.ts",
+    "./runtime": "./src/runtime.ts",
+    "./ws": "./src/ws.ts",
+    "./sqlite": "./src/sqlite.ts"
+  },
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json",

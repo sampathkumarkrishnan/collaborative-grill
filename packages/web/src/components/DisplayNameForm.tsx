@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 
 export interface DisplayNameFormProps {
   defaultValue?: string;
@@ -9,6 +9,7 @@ export interface DisplayNameFormProps {
 export function DisplayNameForm({ defaultValue, onSubmit }: DisplayNameFormProps): JSX.Element {
   const [displayName, setDisplayName] = useState(defaultValue ?? "");
   const [error, setError] = useState<string | null>(null);
+  const inputId = useId();
 
   function handleSubmit(event: React.FormEvent): void {
     event.preventDefault();
@@ -23,9 +24,10 @@ export function DisplayNameForm({ defaultValue, onSubmit }: DisplayNameFormProps
 
   return (
     <form onSubmit={handleSubmit} aria-label="Choose a display name">
-      <label htmlFor="display-name-input">Display name</label>
+      <label htmlFor={inputId}>Display name</label>
       <input
-        id="display-name-input"
+        id={inputId}
+        aria-label="Display name"
         value={displayName}
         onChange={(event) => setDisplayName(event.target.value)}
         placeholder="How should your Replies be labeled?"

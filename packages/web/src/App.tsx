@@ -3,11 +3,14 @@ import { ApiClient } from "./api.js";
 import { HomePage } from "./HomePage.js";
 import { parseRoute } from "./router.js";
 import { RoomPage } from "./RoomPage.js";
+import { defaultBrowserStorage, type BrowserStorage } from "./storage.js";
 import type { SocketFactory } from "./ws.js";
 
 export interface AppProps {
   /** Overridable for tests; production builds a default client against the configured Server. */
   apiClient?: ApiClient;
+  /** Overrides browser storage (tests only). */
+  storage?: BrowserStorage;
   /** Overrides the WebSocket constructor used by any open Room (tests only). */
   createSocket?: SocketFactory;
   socketUrl?: string;
@@ -21,7 +24,13 @@ export interface AppProps {
  * Link. Uses `history.pushState` for in-app navigation so a shared Link
  * still works as a normal URL on first load.
  */
-export function App({ apiClient, createSocket, socketUrl, initialPath }: AppProps): JSX.Element {
+export function App({
+  apiClient,
+  storage = defaultBrowserStorage,
+  createSocket,
+  socketUrl,
+  initialPath
+}: AppProps): JSX.Element {
   const client = useMemo(() => apiClient ?? new ApiClient(), [apiClient]);
   const [path, setPath] = useState(
     () => initialPath ?? (typeof window !== "undefined" ? window.location.pathname : "/")
@@ -50,6 +59,7 @@ export function App({ apiClient, createSocket, socketUrl, initialPath }: AppProp
         key={route.link}
         link={route.link}
         apiClient={client}
+        storage={storage}
         onBack={() => navigate("/")}
         createSocket={createSocket}
         socketUrl={socketUrl}
@@ -57,5 +67,5 @@ export function App({ apiClient, createSocket, socketUrl, initialPath }: AppProp
     );
   }
 
-  return <HomePage apiClient={client} onNavigate={navigate} />;
+  return <HomePage apiClient={client} storage={storage} onNavigate={navigate} />;
 }

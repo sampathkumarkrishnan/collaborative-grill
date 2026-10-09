@@ -7,12 +7,8 @@ import { PresenceBadge } from "./components/PresenceBadge.js";
 import { ShareLink } from "./components/ShareLink.js";
 import { TranscriptView } from "./components/TranscriptView.js";
 import {
-  getDisplayName,
-  getHostCredential,
-  getLastDisplayName,
-  isHostOfRoom,
-  rememberDisplayName,
-  rememberVisitedRoom
+  defaultBrowserStorage,
+  type BrowserStorage
 } from "./storage.js";
 import { RoomSocketClient, type SocketFactory } from "./ws.js";
 
@@ -20,6 +16,7 @@ export interface RoomPageProps {
   link: string;
   apiClient: ApiClient;
   onBack: () => void;
+  storage?: BrowserStorage;
   /** Overrides for tests; production uses the real WebSocket and `/ws` URL. */
   createSocket?: SocketFactory;
   socketUrl?: string;
@@ -43,7 +40,14 @@ type LoadState =
  * This is the web app's only talk path to the Server; it never contacts
  * the Daemon or the Cursor SDK directly.
  */
-export function RoomPage({ link, apiClient, onBack, createSocket, socketUrl }: RoomPageProps): JSX.Element {
+export function RoomPage({
+  link,
+  apiClient,
+  onBack,
+  storage = defaultBrowserStorage,
+  createSocket,
+  socketUrl
+}: RoomPageProps): JSX.Element {
   const [state, setState] = useState<LoadState>({ status: "loading" });
   const [transcript, setTranscript] = useState<TranscriptEntry[]>([]);
   const [daemonConnected, setDaemonConnected] = useState(false);
@@ -69,25 +73,26 @@ export function RoomPage({ link, apiClient, onBack, createSocket, socketUrl }: R
         setDaemonConnected(response.room.daemonConnected);
 
         const roomId = response.room.id;
-        const isHost = isHostOfRoom(roomId);
-        const existingName = getDisplayName(roomId);
+        const isHost = storage.isHostOfRoom(roomId);
+        const existingName = storage.getDisplayName(roomId);
 
         if (existingName) {
           if (!isHost) {
-            rememberVisitedRoom({ id: roomId, topic: response.room.topic, link: response.room.link });
+            storage.rememberVisitedRoom({ id: roomId, topic: response.room.topic, link: response.room.link });
           }
           setState({
             status: "ready",
             room: response.room,
             displayName: existingName,
             isHost,
-            hostCredential: getHostCredential(roomId)
+            hostCredential: storage.getHostCredential(roomId)
           });
         } else {
           setState({ status: "needs-name", room: response.room });
         }
       })
-      .catch((err) => {
+    // ...
+    .catch((err) => {
         if (cancelled) {
           return;
         }
@@ -104,7 +109,7 @@ export function RoomPage({ link, apiClient, onBack, createSocket, socketUrl }: R
     return () => {
       cancelled = true;
     };
-  }, [link, apiClient]);
+  }, [link, apiClient, storage]);
 
   const roomId =
     state.status === "ready" || state.status === "needs-name" ? state.room.id : undefined;
@@ -154,19 +159,19 @@ export function RoomPage({ link, apiClient, onBack, createSocket, socketUrl }: R
         <button onClick={onBack}>Back</button>
         <h1>{room.topic}</h1>
         <DisplayNameForm
-          defaultValue={getLastDisplayName()}
+          defaultValue={storage.getLastDisplayName()}
           onSubmit={(displayName) => {
-            rememberDisplayName(room.id, displayName);
-            const isHost = isHostOfRoom(room.id);
+            storage.rememberDisplayName(room.id, displayName);
+            const isHost = storage.isHostOfRoom(room.id);
             if (!isHost) {
-              rememberVisitedRoom({ id: room.id, topic: room.topic, link: room.link });
+              storage.rememberVisitedRoom({ id: room.id, topic: room.topic, link: room.link });
             }
             setState({
               status: "ready",
               room,
               displayName,
               isHost,
-              hostCredential: getHostCredential(room.id)
+              hostCredential: storage.getHostCredential(room.id)
             });
           }}
         />
