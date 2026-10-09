@@ -1,12 +1,14 @@
 import cors from "cors";
 import express, { type Express } from "express";
+import type { RoomModule } from "@collaborative-grill/room";
 import {
   validateCreateRoomRequest,
   validateDisplayName,
   type PostMessageRequest,
+  type PostMessageResponse,
   type RelayRejectionReason
 } from "@collaborative-grill/shared";
-import type { RoomStore } from "./store.js";
+import type { BroadcastHub } from "./hub.js";
 
 const REJECTION_STATUS: Record<RelayRejectionReason, number> = {
   "room-not-found": 404,
@@ -19,11 +21,21 @@ function statusForRejection(reason: RelayRejectionReason): number {
   return REJECTION_STATUS[reason];
 }
 
+function broadcastTranscript(
+  hub: BroadcastHub,
+  roomId: string,
+  result: PostMessageResponse
+): void {
+  if (result.ok) {
+    hub.broadcast(roomId, { type: "transcript-entry", roomId, entry: result.entry });
+  }
+}
+
 /**
- * Builds the Server HTTP app for a given Room store. Kept separate from
- * `index.ts` so tests can exercise routes without binding a port.
+ * Builds the Server HTTP app against the Room module. Successful posts
+ * fan out through the hub so WebSocket subscribers see Transcript lines.
  */
-export function createApp(store: RoomStore): Express {
+export function createApp(roomModule: RoomModule, hub: BroadcastHub): Express {
   const app = express();
   app.use(cors());
   app.use(express.json());
@@ -35,31 +47,31 @@ export function createApp(store: RoomStore): Express {
       return;
     }
 
-    const { room, hostCredential } = store.createRoom(validated.value.topic);
+    const { room, hostCredential } = roomModule.createRoom(validated.value.topic);
     res.status(201).json({ room, hostCredential });
   });
 
   app.get("/api/rooms/by-link/:linkToken", (req, res) => {
-    const room = store.getRoomByLink(req.params.linkToken);
-    if (!room) {
+    const joined = roomModule.joinByLink(req.params.linkToken);
+    if (!joined) {
       res.status(404).json({ error: "not-found" });
       return;
     }
 
     res.status(200).json({
-      room: store.toSummary(room),
-      transcript: room.transcript
+      room: joined.room,
+      transcript: joined.transcript
     });
   });
 
   app.get("/api/rooms/:roomId/transcript", (req, res) => {
-    const room = store.getRoomById(req.params.roomId);
-    if (!room) {
+    const summary = roomModule.getRoomSummary(req.params.roomId);
+    if (!summary) {
       res.status(404).json({ error: "not-found" });
       return;
     }
 
-    res.status(200).json({ transcript: room.transcript });
+    res.status(200).json({ transcript: roomModule.getTranscript(req.params.roomId) });
   });
 
   app.post("/api/rooms/:roomId/messages", (req, res) => {
@@ -81,7 +93,8 @@ export function createApp(store: RoomStore): Express {
         displayName: displayName.value,
         body: body.body
       };
-      const result = store.postMessage(req.params.roomId, request);
+      const result = roomModule.postMessage(req.params.roomId, request);
+      broadcastTranscript(hub, req.params.roomId, result);
       res.status(result.ok ? 201 : 404).json(result);
       return;
     }
@@ -97,7 +110,8 @@ export function createApp(store: RoomStore): Express {
         hostCredential: body.hostCredential,
         body: body.body
       };
-      const result = store.postMessage(req.params.roomId, request);
+      const result = roomModule.postMessage(req.params.roomId, request);
+      broadcastTranscript(hub, req.params.roomId, result);
       res.status(result.ok ? 201 : statusForRejection(result.error)).json(result);
       return;
     }

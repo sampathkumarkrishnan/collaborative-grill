@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import request from "supertest";
 import { WebSocket } from "ws";
 import { createApp } from "../src/app.js";
-import { createRoomStore, type RoomStore } from "../src/store.js";
+import { createServerRuntime, type ServerRuntime } from "../src/runtime.js";
 import { attachWebSocketServer } from "../src/ws.js";
 
 async function listen(server: HttpServer): Promise<number> {
@@ -39,26 +39,35 @@ function nextMessage(socket: WebSocket): Promise<ServerToClientMessage> {
 }
 
 describe("WebSocket hub", () => {
-  let store: RoomStore;
+  let runtime: ServerRuntime;
   let server: HttpServer;
   const sockets: WebSocket[] = [];
 
   afterEach(async () => {
-    for (const socket of sockets) {
-      socket.close();
-    }
+    const closing = sockets.map(
+      (socket) =>
+        new Promise<void>((resolve) => {
+          if (socket.readyState === WebSocket.CLOSED) {
+            resolve();
+            return;
+          }
+          socket.once("close", () => resolve());
+          socket.close();
+        })
+    );
     sockets.length = 0;
+    await Promise.all(closing);
     await new Promise<void>((resolve, reject) => {
       server.close((err) => (err ? reject(err) : resolve()));
     });
-    store.close();
+    runtime.close();
   });
 
   async function startServer(): Promise<{ port: number; origin: string }> {
-    store = createRoomStore();
-    const app = createApp(store);
+    runtime = createServerRuntime();
+    const app = createApp(runtime.room, runtime.hub);
     server = createServer(app);
-    attachWebSocketServer(server, store);
+    attachWebSocketServer(server, runtime.room, runtime.hub);
     const port = await listen(server);
     return { port, origin: `http://127.0.0.1:${port}` };
   }
@@ -181,5 +190,42 @@ describe("WebSocket hub", () => {
       expect(message.entry.kind).toBe("reply");
       expect(message.entry.body).toBe("hello room");
     }
+  });
+
+  it("delivers an accepted Relay only to that Room's Daemon socket", async () => {
+    const { port, origin } = await startServer();
+    const created = await request(origin).post("/api/rooms").send({ topic: "Topic A" });
+    const roomId = created.body.room.id as string;
+    const hostCredential = created.body.hostCredential as string;
+
+    const subscriber = await connect(port);
+    await subscribe(subscriber, roomId);
+
+    const daemon = await connect(port);
+    const presence = nextMessage(subscriber);
+    daemon.send(JSON.stringify({ type: "daemon-connect", roomId, hostCredential }));
+    expect(await presence).toEqual({ type: "presence", roomId, daemonConnected: true });
+
+    const subscriberPending = nextMessage(subscriber);
+    const daemonPending = nextMessage(daemon);
+    const posted = await request(origin)
+      .post(`/api/rooms/${roomId}/messages`)
+      .send({ kind: "relay", hostCredential, body: "@agent   summarize   " });
+    expect(posted.status).toBe(201);
+    expect(posted.body.entry.kind).toBe("relay");
+
+    const toSubscriber = await subscriberPending;
+    expect(toSubscriber.type).toBe("transcript-entry");
+    if (toSubscriber.type === "transcript-entry") {
+      expect(toSubscriber.entry.kind).toBe("relay");
+    }
+
+    const toDaemon = await daemonPending;
+    expect(toDaemon).toEqual({
+      type: "relay-delivery",
+      roomId,
+      relayId: posted.body.entry.id,
+      payload: "summarize"
+    });
   });
 });
