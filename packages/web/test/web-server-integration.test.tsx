@@ -76,7 +76,7 @@ describe("Web and Server integration", () => {
     expect(roomSummary).not.toBeNull();
     expect(roomSummary?.room.topic).toBe("Collaborative grilling");
 
-    // Member joins using the Link path in a second browser session
+    // Member joins using the Link path in a second browser window
     const memberStorage = createBrowserStorage(createInMemoryStorage());
     const memberClient = new ApiClient({ baseUrl: serverUrl });
     const memberView = render(
@@ -95,6 +95,22 @@ describe("Web and Server integration", () => {
     // Member does not hold host credential
     expect(memberStorage.isHostOfRoom(roomSummary!.room.id)).toBe(false);
     expect(hostStorage.isHostOfRoom(roomSummary!.room.id)).toBe(true);
+
+    // Host and Member post Replies against running Server with SQLite
+    const hostComposer = await within(hostView.container).findByLabelText("Message");
+    await user.type(hostComposer, "Welcome to the grill");
+    await user.click(within(hostView.container).getByRole("button", { name: "Send" }));
+
+    const memberComposer = await within(memberView.container).findByLabelText("Message");
+    await user.type(memberComposer, "Excited to collaborate");
+    await user.click(within(memberView.container).getByRole("button", { name: "Send" }));
+
+    // Verify Transcript in SQLite directly
+    const stored = runtime.room.getTranscript(roomSummary!.room.id);
+    expect(stored.map((e) => ({ author: e.authorDisplayName, body: e.body, kind: e.kind }))).toEqual([
+      { author: "Host", body: "Welcome to the grill", kind: "reply" },
+      { author: "Ada", body: "Excited to collaborate", kind: "reply" }
+    ]);
   });
 
   it("delivers two-browser Reply flow live over WebSocket without reload", async () => {
@@ -172,9 +188,8 @@ describe("Web and Server integration", () => {
 
     // Verify Transcript in SQLite contains both messages in order
     const roomId = linkPath.replace("/r/", "");
-    const roomTranscript = runtime.room.getTranscript(
-      runtime.room.joinByLink(roomId)!.room.id
-    );
+    const joinedRoom = runtime.room.joinByLink(roomId)!;
+    const roomTranscript = runtime.room.getTranscript(joinedRoom.room.id);
     expect(roomTranscript.map((entry) => ({ author: entry.authorDisplayName, body: entry.body }))).toEqual([
       { author: "Host", body: "Hello from Host" },
       { author: "Ada", body: "Hello back from Ada" }
@@ -251,9 +266,8 @@ describe("Web and Server integration", () => {
 
     // Verify Transcript in SQLite is empty
     const roomId = linkPath.replace("/r/", "");
-    const roomTranscript = runtime.room.getTranscript(
-      runtime.room.joinByLink(roomId)!.room.id
-    );
+    const joinedRoom = runtime.room.joinByLink(roomId)!;
+    const roomTranscript = runtime.room.getTranscript(joinedRoom.room.id);
     expect(roomTranscript).toHaveLength(0);
 
     // Member can still post a Reply

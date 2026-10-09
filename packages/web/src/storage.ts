@@ -24,8 +24,6 @@ export interface StoredRoomRef {
 export interface StorageLike {
   getItem(key: string): string | null;
   setItem(key: string, value: string): void;
-  removeItem?(key: string): void;
-  clear?(): void;
 }
 
 export interface BrowserStorage {
@@ -47,12 +45,6 @@ export function createInMemoryStorage(): StorageLike {
     getItem: (key: string) => store.get(key) ?? null,
     setItem: (key: string, value: string) => {
       store.set(key, value);
-    },
-    removeItem: (key: string) => {
-      store.delete(key);
-    },
-    clear: () => {
-      store.clear();
     }
   };
 }
