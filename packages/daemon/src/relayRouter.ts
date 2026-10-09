@@ -8,9 +8,8 @@ import { buildAgentPublicationMessage } from "./messages.js";
 
 /**
  * Sends one wire `agent-publication` message. Named distinctly from
- * `MockRoomStore.publishAgentEntry` (`packages/server/src/store.ts`),
- * which appends to the in-memory Transcript - a different concept on the
- * Server side of the same wire message.
+ * Room `publishAgentMessage`, which appends to the Transcript - a
+ * different concept on the Server side of the same wire message.
  */
 export type SendAgentPublication = (message: AgentPublicationMessage) => void;
 

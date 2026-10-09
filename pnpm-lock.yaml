@@ -64,6 +64,9 @@ importers:
 
   packages/server:
     dependencies:
+      '@collaborative-grill/room':
+        specifier: workspace:*
+        version: link:../room
       '@collaborative-grill/shared':
         specifier: workspace:*
         version: link:../shared
