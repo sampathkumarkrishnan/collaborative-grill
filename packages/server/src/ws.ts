@@ -4,7 +4,7 @@ import type {
   ClientToServerMessage,
   ServerToClientMessage
 } from "@collaborative-grill/shared";
-import type { MockRoomStore } from "./store.js";
+import type { RoomStore } from "./store.js";
 
 interface Subscription {
   socket: WebSocket;
@@ -12,13 +12,13 @@ interface Subscription {
 }
 
 /**
- * Minimal mock WebSocket wiring for local development: subscribers get
- * presence broadcasts, and `agent-publication` from a Daemon is appended
- * and broadcast. Relay delivery to the Daemon connection is left as a
- * `// TODO` for the real Room/Server tickets, which will also need a
- * registry of which socket holds which Room's Daemon connection.
+ * WebSocket hub: subscribe, Daemon connect/disconnect, and Agent
+ * publication. Transcript and presence broadcasts come from Room store
+ * listeners so HTTP posts and Daemon messages share one fan-out path.
+ * Relay delivery to the Daemon socket belongs to the Server/Room
+ * integration ticket.
  */
-export function attachWebSocketServer(httpServer: HttpServer, store: MockRoomStore): WebSocketServer {
+export function attachWebSocketServer(httpServer: HttpServer, store: RoomStore): WebSocketServer {
   const wss = new WebSocketServer({ server: httpServer, path: "/ws" });
   const subscriptions: Subscription[] = [];
 
@@ -35,6 +35,13 @@ export function attachWebSocketServer(httpServer: HttpServer, store: MockRoomSto
       }
     }
   }
+
+  store.addTranscriptListener((roomId, entry) => {
+    broadcastToRoom(roomId, { type: "transcript-entry", roomId, entry });
+  });
+  store.addPresenceListener((roomId, daemonConnected) => {
+    broadcastToRoom(roomId, { type: "presence", roomId, daemonConnected });
+  });
 
   wss.on("connection", (socket) => {
     socket.on("message", (raw) => {
@@ -55,26 +62,14 @@ export function attachWebSocketServer(httpServer: HttpServer, store: MockRoomSto
           const ok = store.setDaemonConnected(message.roomId, message.hostCredential, true);
           if (!ok) {
             send(socket, { type: "error", message: "Unknown Room or Host credential" });
-            break;
           }
-          broadcastToRoom(message.roomId, {
-            type: "presence",
-            roomId: message.roomId,
-            daemonConnected: true
-          });
           break;
         }
         case "daemon-disconnect": {
           const ok = store.setDaemonConnected(message.roomId, message.hostCredential, false);
           if (!ok) {
             send(socket, { type: "error", message: "Unknown Room or Host credential" });
-            break;
           }
-          broadcastToRoom(message.roomId, {
-            type: "presence",
-            roomId: message.roomId,
-            daemonConnected: false
-          });
           break;
         }
         case "agent-publication": {
@@ -85,16 +80,6 @@ export function attachWebSocketServer(httpServer: HttpServer, store: MockRoomSto
           );
           if (!ok) {
             send(socket, { type: "error", message: "Unknown Room or Host credential" });
-            break;
-          }
-          const room = store.getRoomById(message.roomId);
-          const entry = room?.transcript.at(-1);
-          if (entry) {
-            broadcastToRoom(message.roomId, {
-              type: "transcript-entry",
-              roomId: message.roomId,
-              entry
-            });
           }
           break;
         }

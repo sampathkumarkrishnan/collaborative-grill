@@ -1,11 +1,18 @@
-import { beforeEach, describe, expect, it } from "vitest";
-import { createMockRoomStore, type MockRoomStore } from "../src/store.js";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { createRoomStore, type RoomStore } from "../src/store.js";
 
-describe("createMockRoomStore", () => {
-  let store: MockRoomStore;
+describe("createRoomStore", () => {
+  let store: RoomStore;
 
   beforeEach(() => {
-    store = createMockRoomStore();
+    store = createRoomStore();
+  });
+
+  afterEach(() => {
+    store.close();
   });
 
   it("creates a Room bound to a minted Link and Host credential, with an empty Transcript", () => {
@@ -127,5 +134,35 @@ describe("createMockRoomStore", () => {
     const transcript = store.getRoomByLink(room.link.split("/").pop()!)?.transcript ?? [];
     expect(transcript).toHaveLength(1);
     expect(transcript[0]?.kind).toBe("agent");
+  });
+
+  it("persists Room and Transcript across a Server restart", () => {
+    const dir = mkdtempSync(join(tmpdir(), "collaborative-grill-"));
+    const dbPath = join(dir, "rooms.sqlite");
+
+    const first = createRoomStore(dbPath);
+    const { room, hostCredential } = first.createRoom("Collaborative grilling");
+    const reply = first.postMessage(room.id, {
+      kind: "reply",
+      displayName: "Ada",
+      body: "hello room"
+    });
+    expect(reply.ok).toBe(true);
+    first.close();
+
+    const restarted = createRoomStore(dbPath);
+    const linkToken = room.link.split("/").pop()!;
+    const restored = restarted.getRoomByLink(linkToken);
+
+    expect(restored?.id).toBe(room.id);
+    expect(restored?.topic).toBe("Collaborative grilling");
+    expect(restored?.transcript).toHaveLength(1);
+    expect(restored?.transcript[0]?.kind).toBe("reply");
+    expect(restored?.transcript[0]?.body).toBe("hello room");
+    expect(restored?.daemonConnected).toBe(false);
+    expect(restarted.setDaemonConnected(room.id, hostCredential, true)).toBe(true);
+
+    restarted.close();
+    rmSync(dir, { recursive: true, force: true });
   });
 });

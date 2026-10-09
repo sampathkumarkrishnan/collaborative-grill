@@ -1,11 +1,14 @@
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import request from "supertest";
 import { createApp } from "../src/app.js";
-import { createMockRoomStore } from "../src/store.js";
+import { createRoomStore } from "../src/store.js";
 
-describe("stub Server HTTP routes", () => {
+describe("Server HTTP routes", () => {
   it("POST /api/rooms creates a Room and returns a Host credential", async () => {
-    const app = createApp(createMockRoomStore());
+    const app = createApp(createRoomStore());
 
     const res = await request(app).post("/api/rooms").send({ topic: "Collaborative grilling" });
 
@@ -16,7 +19,7 @@ describe("stub Server HTTP routes", () => {
   });
 
   it("POST /api/rooms rejects a blank Topic with 400", async () => {
-    const app = createApp(createMockRoomStore());
+    const app = createApp(createRoomStore());
 
     const res = await request(app).post("/api/rooms").send({ topic: "   " });
 
@@ -24,7 +27,7 @@ describe("stub Server HTTP routes", () => {
   });
 
   it("GET /api/rooms/by-link/:linkToken joins an existing Room", async () => {
-    const app = createApp(createMockRoomStore());
+    const app = createApp(createRoomStore());
     const created = await request(app).post("/api/rooms").send({ topic: "Topic A" });
     const linkToken = created.body.room.link.split("/").pop();
 
@@ -36,7 +39,7 @@ describe("stub Server HTTP routes", () => {
   });
 
   it("GET /api/rooms/by-link/:linkToken returns 404 and leaks no data for an unknown Link", async () => {
-    const app = createApp(createMockRoomStore());
+    const app = createApp(createRoomStore());
 
     const res = await request(app).get("/api/rooms/by-link/does-not-exist");
 
@@ -45,7 +48,7 @@ describe("stub Server HTTP routes", () => {
   });
 
   it("POST /api/rooms/:roomId/messages appends a Reply", async () => {
-    const app = createApp(createMockRoomStore());
+    const app = createApp(createRoomStore());
     const created = await request(app).post("/api/rooms").send({ topic: "Topic A" });
     const roomId = created.body.room.id;
 
@@ -59,7 +62,7 @@ describe("stub Server HTTP routes", () => {
   });
 
   it("POST /api/rooms/:roomId/messages rejects a Relay with 403 when not the Host", async () => {
-    const app = createApp(createMockRoomStore());
+    const app = createApp(createRoomStore());
     const created = await request(app).post("/api/rooms").send({ topic: "Topic A" });
     const roomId = created.body.room.id;
 
@@ -69,5 +72,34 @@ describe("stub Server HTTP routes", () => {
 
     expect(res.status).toBe(403);
     expect(res.body).toEqual({ ok: false, error: "not-host" });
+  });
+
+  it("persists Room and Transcript across Server restart", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "collaborative-grill-http-"));
+    const dbPath = join(dir, "rooms.sqlite");
+
+    const firstStore = createRoomStore(dbPath);
+    const firstApp = createApp(firstStore);
+    const created = await request(firstApp).post("/api/rooms").send({ topic: "Topic A" });
+    const roomId = created.body.room.id as string;
+    const linkToken = created.body.room.link.split("/").pop();
+
+    const posted = await request(firstApp)
+      .post(`/api/rooms/${roomId}/messages`)
+      .send({ kind: "reply", displayName: "Ada", body: "hello" });
+    expect(posted.status).toBe(201);
+    firstStore.close();
+
+    const restartedStore = createRoomStore(dbPath);
+    const restartedApp = createApp(restartedStore);
+    const res = await request(restartedApp).get(`/api/rooms/by-link/${linkToken}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.room.id).toBe(roomId);
+    expect(res.body.room.topic).toBe("Topic A");
+    expect(res.body.transcript).toHaveLength(1);
+    expect(res.body.transcript[0].body).toBe("hello");
+    restartedStore.close();
+    rmSync(dir, { recursive: true, force: true });
   });
 });

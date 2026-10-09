@@ -10,3 +10,7 @@ build/
 coverage/
 *.tsbuildinfo
 .pnpm-store/
+data/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
